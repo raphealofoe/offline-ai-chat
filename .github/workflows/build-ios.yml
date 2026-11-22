@@ -1,0 +1,58 @@
+name: Build unsigned iOS IPA
+
+# Run this manually from the Actions tab ("Run workflow").
+# It builds the Offline AI Chat app on a GitHub Mac runner and produces an
+# UNSIGNED .ipa. SideStore signs it with your own Apple ID when you install
+# it on your iPhone, so no developer account or Mac is needed.
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-15
+    steps:
+      - name: Check out the code
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies (also applies the repo's patches)
+        run: yarn install --frozen-lockfile
+
+      - name: Generate the iOS project
+        run: npx expo prebuild --platform ios --no-install
+
+      - name: Install CocoaPods dependencies
+        working-directory: ios
+        run: pod install
+
+      - name: Build the app (unsigned)
+        working-directory: ios
+        run: |
+          WORKSPACE=$(ls -d *.xcworkspace | head -1)
+          SCHEME=$(xcodebuild -workspace "$WORKSPACE" -list -json | python3 -c "import json,sys; ss=[s for s in json.load(sys.stdin)['workspace']['schemes'] if not s.startswith('Pods')]; print(ss[0])")
+          echo "Building scheme '$SCHEME' in workspace '$WORKSPACE'"
+          xcodebuild \
+            -workspace "$WORKSPACE" \
+            -scheme "$SCHEME" \
+            -configuration Release \
+            -sdk iphoneos \
+            -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO \
+            build
+
+      - name: Package the unsigned IPA
+        run: |
+          mkdir -p Payload
+          cp -R ios/build/Build/Products/Release-iphoneos/*.app Payload/
+          zip -r OfflineAIChat-unsigned.ipa Payload
+
+      - name: Upload the IPA as a downloadable artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: OfflineAIChat-unsigned-ipa
+          path: OfflineAIChat-unsigned.ipa
