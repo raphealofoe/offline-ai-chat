@@ -103,5 +103,5 @@
     "patch-package": "^8.0.1",
     "react-native-gradle-plugin": "^0.71.19",
     "typescript": "~5.8.3"
-  },
+  }
 }
