@@ -23,6 +23,18 @@ jobs:
       - name: Install dependencies (also applies the repo's patches)
         run: yarn install --frozen-lockfile
 
+      - name: Fix a missing include in whisper.rn that newer Xcode rejects
+        run: |
+          python3 - <<'PY'
+          p = 'node_modules/whisper.rn/cpp/rn-whisper.h'
+          s = open(p).read()
+          if '#include <vector>' not in s:
+              open(p, 'w').write('#include <vector>\n' + s)
+              print('Patched rn-whisper.h: added #include <vector>')
+          else:
+              print('rn-whisper.h already includes <vector>')
+          PY
+
       - name: Ensure the app icon files exist
         run: |
           mkdir -p assets/images
