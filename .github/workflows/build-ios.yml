@@ -45,7 +45,16 @@ jobs:
 
       - name: Install CocoaPods dependencies
         working-directory: ios
-        run: pod install
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          for attempt in 1 2 3; do
+            pod install && break
+            if [ "$attempt" = "3" ]; then exit 1; fi
+            echo "pod install failed (attempt $attempt) - waiting 60s, then retrying"
+            sleep 60
+          done
 
       - name: Build the app (unsigned)
         working-directory: ios
