@@ -38,6 +38,11 @@ jobs:
       - name: Generate the iOS project
         run: npx expo prebuild --platform ios --no-install
 
+      - name: Raise the iOS deployment target so all pods accept it
+        run: |
+          sed -i '' -E "s/platform :ios, .*/platform :ios, '16.0'/" ios/Podfile
+          grep "platform :ios" ios/Podfile
+
       - name: Install CocoaPods dependencies
         working-directory: ios
         run: pod install
