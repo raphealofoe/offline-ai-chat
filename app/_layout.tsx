@@ -129,6 +129,15 @@ export default observer(function RootLayout() {
           return;
         }
         console.log('🚀 Initializing language learning models...');
+        const lastError = await readLastModelError();
+if (lastError) {
+  await clearLastModelError();
+  RN.Alert.alert(
+    'Last model error',
+    `${lastError.stage}\n${lastError.at}\n\n${lastError.message}`,
+    [{ text: 'OK' }],
+  );
+}
         await quickSetup();
       } catch (error) {
         console.error('Failed to initialize models:', error);
