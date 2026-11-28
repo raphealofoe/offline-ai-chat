@@ -12,6 +12,7 @@ import {
     getModelFilePath
 } from '../utils/platformPaths';
 import { Storage } from '../utils/storage';
+import { saveLastModelError } from '../utils/lastError';
 
 export interface AppModel {
   id: string;
@@ -635,6 +636,7 @@ class ModelStore {
         this.isContextLoading = false;
       });
       console.error('Failed to initialize context:', error);
+        await saveLastModelError(`initContext:${model.id}`, error);
       
       // Provide more helpful error messages
       if (error instanceof Error) {
@@ -889,6 +891,7 @@ class ModelStore {
       isStreamingComplete = true;
       
       console.error('Error during completion:', error);
+        await saveLastModelError('generateCompletion', error);
       
       // Check if this is a context not found error and try to recover
       if (error && (error.toString().includes('Context not found') || 
