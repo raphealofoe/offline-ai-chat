@@ -6,6 +6,7 @@ import React, { useEffect } from 'react';
 import * as RN from 'react-native';
 import 'react-native-get-random-values';
 import 'react-native-reanimated';
+import { readLastModelError, clearLastModelError } from '../utils/lastError';
 
 const OriginalText = RN.Text;
 
